@@ -1,0 +1,24 @@
+type CatMessage {
+  # Example field (placeholder)
+  exampleField: Int
+}
+
+input CreateCatMessageInput {
+  # Example field (placeholder)
+  exampleField: Int
+}
+
+input UpdateCatMessageInput {
+  id: Int!
+}
+
+type Query {
+  catMessage: [CatMessage]!
+  catMessage(id: Int!): CatMessage
+}
+
+type Mutation {
+  createCatMessage(createCatMessageInput: CreateCatMessageInput!): CatMessage!
+  updateCatMessage(updateCatMessageInput: UpdateCatMessageInput!): CatMessage!
+  removeCatMessage(id: Int!): CatMessage
+}
