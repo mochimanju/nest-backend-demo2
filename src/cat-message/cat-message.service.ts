@@ -1,26 +1,24 @@
 import { Injectable } from '@nestjs/common';
-import { CreateCatMessageInput } from './dto/create-cat-message.input';
-import { UpdateCatMessageInput } from './dto/update-cat-message.input';
+import { CatMessageEntity } from './entities/cat-message.entity';
+import { StoreCatEvent } from './dto/store-cat-event';
 
 @Injectable()
 export class CatMessageService {
-  create(createCatMessageInput: CreateCatMessageInput) {
-    return 'This action adds a new catMessage';
+  private messages: CatMessageEntity[] = [];
+
+  storeMessage(input: StoreCatEvent) {
+    const message: CatMessageEntity = {
+      id: String(Date.now()),
+      eventName: input.eventName,
+      payload: input.payload,
+      timestamp: input.timestamp,
+    };
+
+    this.messages.push(message);
+    return message;
   }
 
-  findAll() {
-    return `This action returns all catMessage`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} catMessage`;
-  }
-
-  update(id: number, updateCatMessageInput: UpdateCatMessageInput) {
-    return `This action updates a #${id} catMessage`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} catMessage`;
+  getMessages() {
+    return this.messages;
   }
 }
