@@ -1,56 +1,67 @@
 version: '3.8'
 
 services:
+  # -----------------------------
+  # MongoDB
+  # -----------------------------
   mongo:
     image: mongo
     restart: always
     environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: example
+      MONGO_INITDB_ROOT_USERNAME: ${MONGODB_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGODB_PASS}
     ports:
       - '27019:27017'
     volumes:
       - mongo-data:/data/db
 
-  kafka-2:
-    image: confluentinc/cp-kafka:latest
-    container_name: kafka-2
+  # -----------------------------
+  # Kafka (Single node - KRaft mode)
+  # -----------------------------
+  kafka:
+    image: confluentinc/cp-kafka:7.6.1
+    container_name: kafka
     restart: always
     ports:
-      - '9094:9094'
-      - '29093:29093'
+      - '9092:9092'    # internal (ใช้ใน container)
+      - '29092:29092'  # external (NestJS ใช้ port นี้)
     env_file:
       - .env
     environment:
-      KAFKA_NODE_ID: ${KAFKA_NODE_ID_2}
-      KAFKA_PROCESS_ROLES: ${KAFKA_PROCESS_ROLES_2}
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: ${KAFKA_LISTENER_SECURITY_PROTOCOL_MAP_2}
-      KAFKA_LISTENERS: ${KAFKA_LISTENERS_2}
-      KAFKA_ADVERTISED_LISTENERS: ${KAFKA_ADVERTISED_LISTENERS_2}
-      KAFKA_CONTROLLER_QUORUM_VOTERS: ${KAFKA_CONTROLLER_QUORUM_VOTERS_2}
-      KAFKA_CONTROLLER_LISTENER_NAMES: ${KAFKA_CONTROLLER_LISTENER_NAMES_2}
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: ${KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR_2}
-      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: ${KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR_2}
-      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: ${KAFKA_TRANSACTION_STATE_LOG_MIN_ISR_2}
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: ${KAFKA_AUTO_CREATE_TOPICS_ENABLE_2}
-      CLUSTER_ID: ${CLUSTER_ID_2}
+      KAFKA_NODE_ID: ${KAFKA_NODE_ID}
+      KAFKA_PROCESS_ROLES: ${KAFKA_PROCESS_ROLES}
+      KAFKA_CONTROLLER_LISTENER_NAMES: ${KAFKA_CONTROLLER_LISTENER_NAMES}
 
-  kafdrop-2:
+      # KRAfT: single node quorum
+      KAFKA_CONTROLLER_QUORUM_VOTERS: ${KAFKA_CONTROLLER_QUORUM_VOTERS}
+
+      # LISTENERS
+      KAFKA_LISTENERS: ${KAFKA_LISTENERS}
+      KAFKA_ADVERTISED_LISTENERS: ${KAFKA_ADVERTISED_LISTENERS}
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: ${KAFKA_LISTENER_SECURITY_PROTOCOL_MAP}
+
+      # automatic topic creation (for dev)
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: ${KAFKA_AUTO_CREATE_TOPICS_ENABLE}
+
+      # no zookeeper
+      CLUSTER_ID: ${CLUSTER_ID}
+
+  # -----------------------------
+  # Kafdrop UI
+  # -----------------------------
+  kafdrop:
     image: obsidiandynamics/kafdrop:latest
-    container_name: kafdrop-2
+    container_name: kafdrop
     restart: always
     ports:
       - '9001:9000'
     environment:
-      KAFKA_BROKERCONNECT: 'kafka-2:9094'
+      KAFKA_BROKERCONNECT: 'kafka:9092'
       JVM_OPTS: '-Xms32M -Xmx64M'
-
     depends_on:
-      - kafka-2
+      - kafka
 
-
+# VOLUMES
 volumes:
   mongo-data:
-    driver: local
-  mongo-data-2:
     driver: local
