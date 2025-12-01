@@ -5,27 +5,16 @@ import { randomUUID } from 'crypto';
 
 @Injectable()
 export class KafkaConsumerService implements OnModuleInit {
+  // Kafka consumer instance
   private consumer: Consumer;
 
-  /**
-   * 
-   * @param config ConfigService ใช้ดึงค่าต่างๆ จาก .env
-   */
-  constructor(private readonly config: ConfigService) {
-    /** ดึงค่า KAFKA_BROKERS จาก .env
-     *  ถ้าไม่กำหนด จะใช้ค่าเริ่มต้นเป็น localhost:29092
-     *  สามารถระบุหลาย broker โดยคั่นด้วย comma (,) เช่น broker1:9092,broker2:9092
-     */
-    const brokers =
-      this.config.get<string>('KAFKA_BROKERS')?.split(',') ?? [
-        'localhost:29092',
-      ];
+  constructor(private readonly configService: ConfigService) {
+    // ดึง brokers จาก config (.env)
+    const brokers = this.configService.get<string>('KAFKA_BROKERS')?.split(',') ?? [
+      'localhost:29092',
+    ];
 
-    /**
-     * สร้าง clientId แบบสุ่มเพื่อระบุตัวตน consumer
-     * ใช้ฟังก์ชัน randomUUID() จาก crypto module ของ Node.js
-     * clientId ควรจะไม่ซ้ำกันในแต่ละ instance ของ consumer
-     */
+    // generate clientId อัตโนมัติ (กันซ้ำ)
     const clientId = `nestjs-consumer-${randomUUID()}`;
 
     /**
@@ -72,7 +61,7 @@ export class KafkaConsumerService implements OnModuleInit {
     console.log('[Kafka] Listening on topic: cats.events');
 
     /**
-     * เริ่มฟัง message แบบ streaming
+     * เริ่มฟัง message 
      * eachMessage จะถูกเรียกทุกครั้งเมื่อมี message ใหม่เข้ามา
      */
     await this.consumer.run({
